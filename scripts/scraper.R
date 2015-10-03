@@ -1,9 +1,8 @@
 library(XML)
 library(plyr)
-library(ggplot2)
 
 #### A. Data Gathering ####
-
+#TODO: generate this via code. Basically, just put the grep into R.
 pages <- c("http://etd.library.iitb.ac.in/etd/Etd_Query.jsp?dept=Aerospace+Engineering&prog=Ph.D",
            "http://etd.library.iitb.ac.in/etd/Etd_Query.jsp?dept=Bio-Medical+Engineering&prog=Ph.D",
            "http://etd.library.iitb.ac.in/etd/Etd_Query.jsp?dept=Bio-Technology&prog=Ph.D",
@@ -36,8 +35,8 @@ pages <- c("http://etd.library.iitb.ac.in/etd/Etd_Query.jsp?dept=Aerospace+Engin
 
 
 
-l.df.rawtables <- lapply(pages, readHTMLTable, header=T, which=1,stringsAsFactors=F)
-l.df.rawtables <- lapply(1:length(pages), function(i) {l.df.rawtables[[i]]$PageString = pages[i]; l.df.rawtables[[i]]})
+l.dfTime.rawtables <- lapply(pages, readHTMLTable, header=T, which=1,stringsAsFactors=F)
+l.dfTime.rawtables <- lapply(1:length(pages), function(i) {l.dfTime.rawtables[[i]]$PageString = pages[i]; l.dfTime.rawtables[[i]]})
 
 
 
@@ -45,80 +44,75 @@ l.df.rawtables <- lapply(1:length(pages), function(i) {l.df.rawtables[[i]]$PageS
 
 #### B. Data Cleaning ####
 
-df.longtable <- do.call(rbind, l.df.rawtables)
-stopifnot( sum(sapply(l.df.rawtables, nrow)) == nrow(df.longtable) ) # assert to verify correct concatenation
+dfTime.longtable <- do.call(rbind, l.dfTime.rawtables)
+stopifnot( sum(sapply(l.dfTime.rawtables, nrow)) == nrow(dfTime.longtable) ) # assert to verify correct concatenation
 
-df.longtable$FinishYear <- as.numeric(df.longtable$SubmissionYear)
-df.longtable$StartYear <- 1900 + as.numeric(substr(df.longtable$RollNo, 1, 2)) # Extracting join year from roll number
-df.longtable$StartYear[df.longtable$StartYear < 1950] <- df.longtable$StartYear[df.longtable$StartYear < 1950] + 100 #Fixing those from 2000 onwards
+dfTime.longtable$FinishYear <- as.numeric(dfTime.longtable$SubmissionYear)
+dfTime.longtable$StartYear <- 1900 + as.numeric(substr(dfTime.longtable$RollNo, 1, 2)) # Extracting join year from roll number
+dfTime.longtable$StartYear[dfTime.longtable$StartYear < 1950] <- dfTime.longtable$StartYear[dfTime.longtable$StartYear < 1950] + 100 #Fixing those from 2000 onwards
 
-df <- df.longtable[, c("StartYear", "FinishYear")]
-df$Department <- ldply(strsplit(df.longtable$PageString, "[\\&\\=]"))$V2 # Department from the url
-df$Department <- gsub("\\+", " ", df$Department)
-df$Length <- df$FinishYear - df$StartYear
+dfTime <- dfTime.longtable[, c("StartYear", "FinishYear")]
+dfTime$Department <- ldply(strsplit(dfTime.longtable$PageString, "[\\&\\=]"))$V2 # Department from the url
+dfTime$Department <- gsub("\\+", " ", dfTime$Department)
+dfTime$Length <- dfTime$FinishYear - dfTime$StartYear
 
+dfTime$Department <- gsub("%26", "&", dfTime$Department)
 
-write.csv(df, "../data/formatteddata.csv", quote=F, row.names=F)
+write.csv(dfTime, "../data/formatteddata.csv", quote=F, row.names=F)
 
 # B2. Discarding errors (Verified that these are errors)
-sum(df$Length < 0)
-df <- df[df$Length > 0, ]
-sum(df$Length >15)
-df <- df[df$Length < 15, ]
 
+dfTime <- dfTime[dfTime$Length < 15, ]
+dfTime$FinishYear[dfTime$Length < 0] <- 2013
+dfTime$Length <- dfTime$FinishYear - dfTime$StartYear
+
+#CTARA being dropped because it's so new that there's only one student who has completed his PhD
+dfTime <- dfTime[dfTime$Department != "CTARA", ]
 
 # B3. Merges (Unconfirmed!)
+dfTime$Department <- gsub("^Materials Science$", "Metallurgical Engineering and Materials Science", dfTime$Department)
+dfTime$Department <- gsub("^School of Information Technology$", "Computer Science and Engineering", dfTime$Department)
+dfTime$Department <- gsub("^Bio-Medical Engineering$", "Biosciences & Bioengineering", dfTime$Department)
+dfTime$Department <- gsub("^Bio-Technology$", "Biosciences & Bioengineering", dfTime$Department)
+dfTime$Department <- gsub("^Industrial Management$", "School of Management", dfTime$Department)
+
+# B4. Shorter names
+dfTime$Dept <- dfTime$Department
+dfTime$Dept <- gsub("^Aerospace Engineering$", "Aero", dfTime$Dept)
+dfTime$Dept <- gsub("^Biosciences & Bioengineering$", "Bio", dfTime$Dept)
+dfTime$Dept <- gsub("^Centre for Research in Nano Technology and Sciences$", "NanoTech", dfTime$Dept)
+dfTime$Dept <- gsub("^Centre of Studies in Resources Engineering$", "CSRE", dfTime$Dept)
+dfTime$Dept <- gsub("^Chemical Engineering$", "Chemical", dfTime$Dept)
+dfTime$Dept <- gsub("^Civil Engineering$", "Civil", dfTime$Dept)
+dfTime$Dept <- gsub("^Computer Science and Engineering$", "CSE", dfTime$Dept)
+dfTime$Dept <- gsub("^Corrosion Science and Engineering$", "Corrosion", dfTime$Dept)
+dfTime$Dept <- gsub("^Electrical Engineering$", "Elec", dfTime$Dept)
+dfTime$Dept <- gsub("^Energy Systems Engineering$", "Energy", dfTime$Dept)
+dfTime$Dept <- gsub("^Environmental Science and Engineering$", "Enviro", dfTime$Dept)
+dfTime$Dept <- gsub("^Humanities and Social Science$", "HSS", dfTime$Dept)
+dfTime$Dept <- gsub("^Industrial Design Centre$", "IDC", dfTime$Dept)
+dfTime$Dept <- gsub("^Industrial Engineering and Operations Research$", "IEOR", dfTime$Dept)
+dfTime$Dept <- gsub("^Mathematics$", "Math", dfTime$Dept)
+dfTime$Dept <- gsub("^Mechanical Engineering$", "Mech", dfTime$Dept)
+dfTime$Dept <- gsub("^Metallurgical Engineering and Materials Science$", "Meta", dfTime$Dept)
+dfTime$Dept <- gsub("^Reliability Engineering$", "Reliability", dfTime$Dept)
+dfTime$Dept <- gsub("^School of Management$", "SOM", dfTime$Dept)
+dfTime$Dept <- gsub("^Systems and Control Engineering$", "SysCon", dfTime$Dept)
 
 
 
 
 
-# B4. Write to disk
+# B5. Write to disk
 
-write.csv(df, "../data/formatteddata_clean.csv", quote=F, row.names=F)
+write.csv(dfTime, "../data/formatteddata_clean.csv", quote=F, row.names=F)
 
 
-dfFirstPhdJoins <- ddply(df,.variables = "Department", summarize, Startedin = min(StartYear))
-dfLastPhdDegree <- ddply(df,.variables = "Department", summarize, LastDegree = max(FinishYear))
+dfFirstPhdJoins <- ddply(dfTime,.variables = "Department", summarize, Startedin = min(StartYear))
+dfLastPhdDegree <- ddply(dfTime,.variables = "Department", summarize, LastDegree = max(FinishYear))
 
 dfPrograms <- merge(dfFirstPhdJoins, dfLastPhdDegree)
 write.csv(dfPrograms, "../data/programsdata.csv", quote=F, row.names=F)
-
-
-
-
-#### C. Insights & Visualization ####
-
-p <- ggplot(data=df, aes(
-                      x = Length,
-                      y = reorder(Department, Length),
-                      color = Department,
-                      group = Department)) 
-
-
-p + geom_point(size=4,alpha=0.4, position = position_jitter(height = 0.3)) +
-  geom_errorbarh(stat = "vline", xintercept = "median",
-                 height=0.6, size=1,
-                 aes(xmax=..x..,xmin=..x..),color="black") +
-  geom_errorbarh(stat = "vline", xintercept = "mean",
-                 height=0.6, size=1,
-                 aes(xmax=..x..,xmin=..x..),color="red") +
-  theme(legend.position="none") +
-  xlab("Ph.D Length") + ylab("Department")
-
-
-
-ggplot(data = dfPrograms, aes(
-                  x = Startedin,
-                  y = reorder(Department, Startedin),
-                  color = Department,
-                  group = Department)) + geom_point()
-
-ggplot(data = df, aes(
-                  x = Length,
-                  y = factor(StartYear),
-                  group = StartYear)) + geom_point(size=4,alpha=0.2, position = position_jitter(height = 0.2))
-
 
 
 
