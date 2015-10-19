@@ -10,13 +10,19 @@ dfPrograms <- read.csv('../data/programsdata.csv',  header=T)
 
 #### C. Insights & Visualization ####
 
+trimmedMean <- function(x, frac = 0.1){
+  mean(x, trim = frac)
+}
+
+
 ggplot(data = dfPrograms, aes(
                             x = Startedin,
                             y = reorder(Department, Startedin),
                             color = Department,
-                            group = Department)) + geom_point() + ylab("Department")
+                            group = Department)) + geom_point() + ylab("Department") + theme(legend.position="none")
 
 coeffs <- coef(lm(FinishYear ~ StartYear, data = df))
+
 ggplot(data = df, aes(
                       x = StartYear,
                       y = FinishYear)) + geom_point(size=6,alpha=0.04, colour="#112288") +
@@ -25,20 +31,20 @@ ggplot(data = df, aes(
 
 p <- ggplot(data=df, aes(
                       x = Length,
-                      y = reorder(Dept, Length),
+                      y = reorder(Dept, Length, FUN = trimmedMean),
                       color = Dept,
                       group = Dept)) 
 
-
 p2 <- p + geom_point(size=4,alpha=0.3, position = position_jitter(height = 0.3)) +
-          geom_errorbarh(stat = "vline", xintercept = "mean", height=0.6, size=1,
+          geom_errorbarh(stat = "vline", xintercept = "trimmedMean", height=0.6, size=1,
                          aes(xmax=..x..,xmin=..x..),color="black") +
           theme(legend.position="none") +
           xlab("Ph.D Length") + ylab("Department")
 
-p2 + theme_bw()
-p2 + scale_colour_hue(h=c(20, 270)) + theme_bw()
 
+p2 + theme_bw() + theme(legend.position="none")
+p2 + theme(legend.position="none")
+#p2 + scale_colour_hue(h=c(20, 270)) + theme_bw()
 
 
 ggplot(data = df, aes(x = Length))  + geom_histogram(binwidth = 1, aes(y = ..density..))
