@@ -54,7 +54,6 @@ p3 +  theme(axis.text.y = element_text(size = 16, face="bold"), axis.text.x = el
 
 
 #Global Hist
-
 ggplot(data = df, aes(x = factor(Length), fill = 1))  + geom_histogram(aes(y=..count../sum(..count..))) +
   scale_y_continuous(labels = percent_format(), limits = c(0, .35), expand = c(.01,0)) + 
   xlab("Ph.D Length in years") + ylab("Percent of Students") +
@@ -64,7 +63,7 @@ ggplot(data = df, aes(x = factor(Length), fill = 1))  + geom_histogram(aes(y=..c
         axis.title = element_text(size=14,face="bold"),
         axis.title.x = element_text(vjust= -0.5), axis.title.y = element_text(vjust= 1.5)) 
 
-
+#Crap
 ggplot(data = df, aes(x = Length, fill=Dept))  + geom_bar(binwidth = 1, position="fill")
 ggplot(data = df, aes(x = Length, colour = Dept))  + geom_freqpoly(binwidth=1)
 
@@ -74,7 +73,9 @@ stat_sum_single <- function(fun, geom="point", ...) {
 
 ggplot(data = df, aes(x = StartYear,
                       y = Length)) + geom_point(size = 4, alpha = 0.4) + stat_sum_single(mean, geom="line") + 
-  theme_bw() + theme(panel.grid.major =  element_blank(), panel.grid.minor = element_blank())
+  theme_bw() + theme(panel.grid.major =  element_blank(), panel.grid.minor = element_blank()) +
+  theme(axis.text = element_text(size = 14),
+        axis.title = element_text(size=14,face="bold"), axis.title.x = element_text(vjust= -0.5)) 
 
 coef(lm(Length ~ StartYear, data = df))
 cor(df$Length, df$StartYear)
