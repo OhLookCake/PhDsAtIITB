@@ -2,6 +2,7 @@
 library(plyr)
 library(ggplot2)
 library(RColorBrewer)
+library(scales)
 
 df <- read.csv('../data/formatteddata_clean.csv', header=T)
 dfPrograms <- read.csv('../data/programsdata.csv',  header=T)
@@ -28,7 +29,7 @@ ggplot(data = df, aes(
                       y = FinishYear)) + geom_point(size=6,alpha=0.04, colour="#112288") +
   coord_fixed() + geom_abline(intercept = coeffs[1], slope = coeffs[2], colour = "#EE2211", size = 2)
 
-
+#By Department
 p <- ggplot(data=df, aes(
                       x = Length,
                       y = reorder(Dept, Length, FUN = trimmedMean),
@@ -40,14 +41,15 @@ p2 <- p + geom_point(size=4,alpha=0.3, position = position_jitter(height = 0.3))
                          aes(xmax=..x..,xmin=..x..),color="black") +
           theme(legend.position="none") +
           xlab("Ph.D Length") + ylab("Department")
-
-
 p2 + theme_bw() + theme(legend.position="none")
 p2 + theme(legend.position="none")
-#p2 + scale_colour_hue(h=c(20, 270)) + theme_bw()
 
 
-ggplot(data = df, aes(x = Length))  + geom_histogram(binwidth = 1, aes(y = ..density..))
+#Global Hist
+ggplot(data = df, aes(x = Length))  + geom_histogram(binwidth = 1, aes(y = ..density..)) +
+  scale_x_continuous(breaks=1:15, limits = c(1,15)) + scale_y_continuous(labels = percent) + 
+  theme( panel.grid.minor = element_blank(),axis.text.x =  element_text(hjust=-2.5))
+
 ggplot(data = df, aes(x = Length, fill=Dept))  + geom_bar(binwidth = 1, position="fill")
 ggplot(data = df, aes(x = Length, colour = Dept))  + geom_freqpoly(binwidth=1)
 
