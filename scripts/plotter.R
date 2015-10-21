@@ -43,7 +43,7 @@ p2 <- p + geom_point(size=4,alpha=0.3, position = position_jitter(height = 0.3))
                          aes(xmax=..x..,xmin=..x..), color="black")
 
 p3 <- p2 +
-        xlab("Ph.D Length") + ylab("Department") + 
+        xlab("Ph.D Length (years)") + ylab("Department") + 
         scale_x_continuous(breaks=1:15, limits = c(1,15))
         
         
@@ -71,9 +71,11 @@ stat_sum_single <- function(fun, geom="point", ...) {
   stat_summary(fun.y=fun, colour="red", geom=geom, size = 3, ...)
 }
 
+#Variation by year
 ggplot(data = df, aes(x = StartYear,
-                      y = Length)) + geom_point(size = 4, alpha = 0.4) + stat_sum_single(mean, geom="line") + 
-  theme_bw() + theme(panel.grid.major =  element_blank(), panel.grid.minor = element_blank()) +
+                      y = Length)) + geom_point(size = 4, alpha = 0.15) + stat_sum_single(mean, geom="line") + 
+  theme_bw() + theme( panel.grid.minor = element_blank()) +
+  scale_y_continuous(breaks=1:15, limits = c(1,15)) +
   theme(axis.text = element_text(size = 14),
         axis.title = element_text(size=14,face="bold"), axis.title.x = element_text(vjust= -0.5)) 
 
